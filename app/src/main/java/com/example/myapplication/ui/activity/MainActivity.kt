@@ -1,12 +1,13 @@
 package com.example.myapplication.ui.activity
 
-import com.example.myapplication.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +34,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.view_model.SearchViewModel
 
 enum class PlaylistScreen {
     MAIN,
@@ -42,44 +44,50 @@ enum class PlaylistScreen {
 }
 
 class MainActivity : ComponentActivity() {
+    private val searchViewModel by viewModels<SearchViewModel> {
+        SearchViewModel.getViewModelFactory()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
                 val navController = rememberNavController()
-                PlaylistHost(navController = navController)
+                PlaylistHost(navController = navController, searchViewModel = searchViewModel)
             }
         }
     }
 }
 
 @Composable
-fun PlaylistHost(navController: NavHostController) {
-    fun navigateToSearch() = navController.navigate(PlaylistScreen.SEARCH.name)
-    fun navigateToSettings() = navController.navigate(PlaylistScreen.SETTINGS.name)
-    fun navigateToMediateka() = navController.navigate(PlaylistScreen.MEDIATEKA.name)
-    fun goBack() = navController.popBackStack()
-
+fun PlaylistHost(navController: NavHostController, searchViewModel: SearchViewModel) {
     NavHost(
         navController = navController,
         startDestination = PlaylistScreen.MAIN.name
     ) {
         composable(PlaylistScreen.MAIN.name) {
             MainScreen(
-                onSearchClick = { navigateToSearch() },
-                onMediatekaClick = { navigateToMediateka() },
-                onSettingsClick = { navigateToSettings() }
+                onSearchClick = { navController.navigate(PlaylistScreen.SEARCH.name) },
+                onMediatekaClick = { navController.navigate(PlaylistScreen.MEDIATEKA.name) },
+                onSettingsClick = { navController.navigate(PlaylistScreen.SETTINGS.name) }
             )
         }
         composable(PlaylistScreen.SEARCH.name) {
-            SearchScreen(onBackClick = { goBack() })
+            Scaffold { innerPadding ->
+                // Используем наш SearchScreen из SearchActivity.kt
+                SearchScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    viewModel = searchViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
         }
         composable(PlaylistScreen.SETTINGS.name) {
-            SettingsScreen(onBackClick = { goBack() })
+            SettingsScreen(onBackClick = { navController.popBackStack() })
         }
         composable(PlaylistScreen.MEDIATEKA.name) {
-            MediatekaScreen(onBackClick = { goBack() })
+            MediatekaScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }
@@ -90,13 +98,11 @@ fun MainScreen(
     onMediatekaClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF3772FF))
     ) {
-        // Синяя шапка
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,9 +111,9 @@ fun MainScreen(
         ) {
             Text(
                 text = "Playlist maker",
+                color = Color.White,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -120,26 +126,10 @@ fun MainScreen(
                 )
                 .padding(top = 16.dp)
         ) {
-            MenuItem(
-                text = "Поиск",
-                icon = Icons.Default.Search,
-                onClick = onSearchClick
-            )
-            MenuItem(
-                text = "Медиатека",
-                icon = Icons.Default.LibraryMusic,
-                onClick = onMediatekaClick
-            )
-            MenuItem(
-                text = "Избранное",
-                icon = Icons.Default.FavoriteBorder,
-                onClick = { }
-            )
-            MenuItem(
-                text = "Настройки",
-                icon = Icons.Default.Settings,
-                onClick = onSettingsClick
-            )
+            MenuItem(text = "Поиск", icon = Icons.Default.Search, onClick = onSearchClick)
+            MenuItem(text = "Медиатека", icon = Icons.Default.LibraryMusic, onClick = onMediatekaClick)
+            MenuItem(text = "Избранное", icon = Icons.Default.FavoriteBorder, onClick = { })
+            MenuItem(text = "Настройки", icon = Icons.Default.Settings, onClick = onSettingsClick)
         }
     }
 }
@@ -153,36 +143,9 @@ fun MenuItem(text: String, icon: ImageVector, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = Color.Black
-        )
+        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(24.dp), tint = Color.Black)
         Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = text,
-            modifier = Modifier.weight(1f),
-            fontSize = 18.sp,
-            color = Color.Black
-        )
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = Color.Gray
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MyApplicationTheme {
-        MainScreen(
-            onSearchClick = {},
-            onMediatekaClick = {},
-            onSettingsClick = {}
-        )
+        Text(text = text, modifier = Modifier.weight(1f), fontSize = 18.sp, color = Color.Black)
+        Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(24.dp), tint = Color.Gray)
     }
 }
