@@ -1,5 +1,6 @@
-package com.example.myapplication
+package com.example.myapplication.ui.activity
 
+import com.example.myapplication.R
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
