@@ -30,7 +30,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
+
+enum class PlaylistScreen {
+    MAIN,
+    SEARCH,
+    SETTINGS,
+    MEDIATEKA
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,84 +49,99 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                MainScreen()
+                val navController = rememberNavController()
+                PlaylistHost(navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun MainScreen() {
-    val context = LocalContext.current
-    val mainBlue = Color(0xFF3772FF)
-    val lightGray = Color(0xFFE6E6E6)
+fun PlaylistHost(navController: NavHostController) {
+    fun navigateToSearch() = navController.navigate(PlaylistScreen.SEARCH.name)
+    fun navigateToSettings() = navController.navigate(PlaylistScreen.SETTINGS.name)
+    fun navigateToMediateka() = navController.navigate(PlaylistScreen.MEDIATEKA.name)
+    fun goBack() = navController.popBackStack()
+
+    NavHost(
+        navController = navController,
+        startDestination = PlaylistScreen.MAIN.name
+    ) {
+        composable(PlaylistScreen.MAIN.name) {
+            MainScreen(
+                onSearchClick = { navigateToSearch() },
+                onMediatekaClick = { navigateToMediateka() },
+                onSettingsClick = { navigateToSettings() }
+            )
+        }
+        composable(PlaylistScreen.SEARCH.name) {
+            SearchScreen(onBackClick = { goBack() })
+        }
+        composable(PlaylistScreen.SETTINGS.name) {
+            SettingsScreen(onBackClick = { goBack() })
+        }
+        composable(PlaylistScreen.MEDIATEKA.name) {
+            MediatekaScreen(onBackClick = { goBack() })
+        }
+    }
+}
+
+@Composable
+fun MainScreen(
+    onSearchClick: () -> Unit,
+    onMediatekaClick: () -> Unit,
+    onSettingsClick: () -> Unit
+) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(mainBlue) // Весь фон синий под шапкой
+            .background(Color(0xFF3772FF))
     ) {
         // Синяя шапка
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
+                .padding(16.dp)
         ) {
             Text(
                 text = "Playlist maker",
-                fontSize = 20.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
         }
 
-        // Белая область с закругленными углами
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                .background(lightGray) // Серый фон за карточкой
+                .background(
+                    color = Color(0xFFF3F3F3),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                )
+                .padding(top = 16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF3F3F3)) // Светло-серый фон списка как на скрине
-                    .padding(top = 8.dp)
-            ) {
-                MenuItem(
-                    text = "Поиск",
-                    icon = Icons.Default.Search,
-                    onClick = {
-                        val intent = Intent(context, SearchActivity::class.java)
-                        context.startActivity(intent)
-                    }
-                )
-                MenuItem(
-                    text = "Плейлисты",
-                    icon = Icons.Default.LibraryMusic,
-                    onClick = {
-                        val intent = Intent(context, MediatekaActivity::class.java)
-                        context.startActivity(intent)
-                    }
-                )
-                MenuItem(
-                    text = "Избранное",
-                    icon = Icons.Default.FavoriteBorder,
-                    onClick = {
-                        val intent = Intent(context, MediatekaActivity::class.java)
-                        context.startActivity(intent)
-                    }
-                )
-                MenuItem(
-                    text = "Настройки",
-                    icon = Icons.Default.Settings,
-                    onClick = {
-                        val intent = Intent(context, SettingsActivity::class.java)
-                        context.startActivity(intent)
-                    }
-                )
-            }
+            MenuItem(
+                text = "Поиск",
+                icon = Icons.Default.Search,
+                onClick = onSearchClick
+            )
+            MenuItem(
+                text = "Медиатека",
+                icon = Icons.Default.LibraryMusic,
+                onClick = onMediatekaClick
+            )
+            MenuItem(
+                text = "Избранное",
+                icon = Icons.Default.FavoriteBorder,
+                onClick = { }
+            )
+            MenuItem(
+                text = "Настройки",
+                icon = Icons.Default.Settings,
+                onClick = onSettingsClick
+            )
         }
     }
 }
@@ -133,21 +159,20 @@ fun MenuItem(text: String, icon: ImageVector, onClick: () -> Unit) {
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = Color(0xFF1A1B22)
+            tint = Color.Black
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
+            modifier = Modifier.weight(1f),
             fontSize = 18.sp,
-            fontWeight = FontWeight.Normal,
-            color = Color(0xFF1A1B22),
-            modifier = Modifier.weight(1f)
+            color = Color.Black
         )
         Icon(
             imageVector = Icons.Default.KeyboardArrowRight,
             contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = Color.LightGray
+            modifier = Modifier.size(24.dp),
+            tint = Color.Gray
         )
     }
 }
@@ -156,6 +181,10 @@ fun MenuItem(text: String, icon: ImageVector, onClick: () -> Unit) {
 @Composable
 fun MainScreenPreview() {
     MyApplicationTheme {
-        MainScreen()
+        MainScreen(
+            onSearchClick = {},
+            onMediatekaClick = {},
+            onSettingsClick = {}
+        )
     }
 }
