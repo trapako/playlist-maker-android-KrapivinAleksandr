@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,9 @@ class SearchActivity : ComponentActivity() {
 
 @Composable
 fun SearchScreen(onBackClick: () -> Unit) {
+    var searchQuery by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         topBar = {
             Row(
@@ -67,20 +72,43 @@ fun SearchScreen(onBackClick: () -> Unit) {
                 .padding(horizontal = 16.dp)
         ) {
             // Поле поиска
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                placeholder = { Text("Поиск") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    .padding(top = 8.dp)
+                    .height(52.dp),
+                placeholder = { Text("Поиск", color = Color.Gray) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = Color.Gray
+                    )
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = {
+                            searchQuery = ""
+                            focusManager.clearFocus()
+                        }) {
+                            Icon(
+                                Icons.Default.Clear,
+                                contentDescription = "Очистить",
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+                },
                 shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFE6E6E6),
                     unfocusedContainerColor = Color(0xFFE6E6E6),
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = Color.Blue
                 )
             )
         }
